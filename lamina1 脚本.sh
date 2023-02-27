@@ -1,0 +1,71 @@
+#!/bin/bash
+
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+
+LAMINA_DIR="/opt/lamina1"
+
+# 安装依赖项
+sudo apt-get update
+sudo apt-get install -y curl gnupg
+curl https://deb.nodesource.com/setup_16.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# 下载Lamina1
+curl -s https://api.github.com/repos/lamina1network/lamina1/releases/latest \
+| grep "browser_download_url.*tar.gz" \
+| cut -d : -f 2,3 \
+| tr -d \" \
+| xargs curl -L -o lamina1.tar.gz
+
+# 解压Lamina1
+sudo mkdir -p $LAMINA_DIR
+sudo tar -xzf lamina1.tar.gz -C $LAMINA_DIR --strip-components=1
+sudo rm lamina1.tar.gz
+
+function start_lamina1 {
+    # 启动Lamina1节点
+    $LAMINA_DIR/bin/run-lamina1-node.sh
+
+    echo "Lamina1节点已启动。"
+}
+
+function stop_lamina1 {
+    # 停止Lamina1节点
+    $LAMINA_DIR/bin/stop-lamina1-node.sh
+
+    echo "Lamina1节点已停止。"
+}
+
+function restart_lamina1 {
+    # 重启Lamina1节点
+    stop_lamina1
+    start_lamina1
+}
+
+function export_wallet {
+    # 导出钱包
+    $LAMINA_DIR/bin/lamina1-wallet export
+
+    echo "钱包已导出。"
+}
+
+if [ "$1" == "start" ]; then
+    start_lamina1
+elif [ "$1" == "stop" ]; then
+    stop_lamina1
+elif [ "$1" == "restart" ]; then
+    restart_lamina1
+elif [ "$1" == "export" ]; then
+    export_wallet
+elif [ "$1" == "1" ]; then
+    start_lamina1
+elif [ "$1" == "2" ]; then
+    stop_lamina1
+elif [ "$1" == "3" ]; then
+    restart_lamina1
+elif [ "$1" == "4" ]; then
+    export_wallet
+else
+    echo "Usage: $0 {start|stop|restart|export|1|2|3|4}"
+fi
